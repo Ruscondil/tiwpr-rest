@@ -5,7 +5,7 @@ app = Flask(__name__)
 # Sample data
 purchases = []
 products = []
-
+users = []
 # GET endpoint to retrieve all products
 
 
@@ -106,6 +106,78 @@ def delete_product(product_id):
             products.remove(product)
             return jsonify({'message': 'Product deleted'})
     return jsonify({'message': 'Product not found'}), 404
+
+# GET endpoint to retrieve all users
+
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    return jsonify(users)
+
+# POST endpoint to create a new user
+
+
+@app.route('/users', methods=['POST'])
+def create_user():
+    new_user = {
+        'id': len(users) + 1,
+        'name': request.args.get('name'),
+        'email': request.args.get('email')
+    }
+    users.append(new_user)
+    return jsonify(new_user), 201
+# GET endpoint to retrieve a specific user by ID
+
+
+@app.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    for user in users:
+        if user['id'] == user_id:
+            return jsonify(user)
+    return jsonify({'message': 'User not found'}), 404
+
+# PUT endpoint to update a specific user by ID
+
+
+@app.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    for user in users:
+        if user['id'] == user_id:
+            name = request.args.get('name')
+            email = request.args.get('email')
+
+            if name is None or email is None:
+                return jsonify({'message': 'Missing parameters'}), 400
+
+            user['name'] = name
+            user['email'] = email
+            return jsonify(user)
+    return jsonify({'message': 'User not found'}), 404
+
+# PATCH endpoint to update a specific user by ID
+
+
+@app.route('/users/<int:user_id>', methods=['PATCH'])
+def patch_user(user_id):
+    for user in users:
+        if user['id'] == user_id:
+            if 'name' in request.args:
+                user['name'] = request.args.get('name')
+            if 'email' in request.args:
+                user['email'] = request.args.get('email')
+            return jsonify(user)
+    return jsonify({'message': 'User not found'}), 404
+
+# DELETE endpoint to delete a specific user by ID
+
+
+@app.route('/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    for user in users:
+        if user['id'] == user_id:
+            users.remove(user)
+            return jsonify({'message': 'User deleted'})
+    return jsonify({'message': 'User not found'}), 404
 
 
 if __name__ == '__main__':
