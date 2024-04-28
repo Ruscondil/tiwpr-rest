@@ -5,14 +5,15 @@ app = Flask(__name__)
 # Sample data
 purchases = []
 products = []
-# GET endpoint to retrieve all purchases
+
+# GET endpoint to retrieve all products
 
 
 @app.route('/products', methods=['GET'])
 def get_products():
     return jsonify(products)
 
-# POST endpoint to create a new purchase
+# POST endpoint to create a new products
 
 
 @app.route('/products', methods=['POST'])
@@ -31,6 +32,7 @@ def create_product():
 @app.route('/purchases', methods=['GET'])
 def get_purchases():
     return jsonify(products)
+
 
 # POST endpoint to create a new purchase
 
