@@ -47,5 +47,57 @@ def create_purchase():
     return jsonify(new_purchase), 201
 
 
+# GET endpoint to retrieve a specific product by ID
+
+
+@app.route('/products/<int:product_id>', methods=['GET'])
+def get_product(product_id):
+    for product in products:
+        if product['id'] == product_id:
+            return jsonify(product)
+    return jsonify({'message': 'Product not found'}), 404
+
+# PUT endpoint to update a specific product by ID
+
+
+@app.route('/products/<int:product_id>', methods=['PUT'])
+def update_product(product_id):
+    for product in products:
+        if product['id'] == product_id:
+            product['item'] = request.args.get('item')
+            product['quantity'] = int(request.args.get('quantity'))
+            product['price'] = float(request.args.get('price'))
+            return jsonify(product)
+    return jsonify({'message': 'Product not found'}), 404
+
+
+# Patch endpoint to update a specific product by ID
+
+
+@app.route('/products/<int:product_id>', methods=['PATCH'])
+def patch_product(product_id):
+    for product in products:
+        if product['id'] == product_id:
+            if 'item' in request.args:
+                product['item'] = request.args.get('item')
+            if 'quantity' in request.args:
+                product['quantity'] = int(request.args.get('quantity'))
+            if 'price' in request.args:
+                product['price'] = float(request.args.get('price'))
+            return jsonify(product)
+    return jsonify({'message': 'Product not found'}), 404
+
+# Delete endpoint to delete a specific product by ID
+
+
+@app.route('/products/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    for product in products:
+        if product['id'] == product_id:
+            products.remove(product)
+            return jsonify({'message': 'Product deleted'})
+    return jsonify({'message': 'Product not found'}), 404
+
+
 if __name__ == '__main__':
     app.run()
