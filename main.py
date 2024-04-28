@@ -66,9 +66,16 @@ def get_product(product_id):
 def update_product(product_id):
     for product in products:
         if product['id'] == product_id:
-            product['item'] = request.args.get('item')
-            product['quantity'] = int(request.args.get('quantity'))
-            product['price'] = float(request.args.get('price'))
+            item = request.args.get('item')
+            quantity = request.args.get('quantity')
+            price = request.args.get('price')
+
+            if item is None or quantity is None or price is None:
+                return jsonify({'message': 'Missing parameters'}), 400
+
+            product['item'] = item
+            product['quantity'] = int(quantity)
+            product['price'] = float(price)
             return jsonify(product)
     return jsonify({'message': 'Product not found'}), 404
 
