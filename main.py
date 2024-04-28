@@ -21,9 +21,9 @@ def create_product():
 
     new_product = {
         'id': len(products) + 1,
-        'item': request.args.get('item'),
-        'quantity': int(request.args.get('quantity')),
-        'price': float(request.args.get('price'))
+        'item': request.json.get('item'),
+        'quantity': int(request.json.get('quantity')),
+        'price': float(request.json.get('price'))
     }
     products.append(new_product)
     return jsonify(new_product), 201
@@ -66,9 +66,9 @@ def get_product(product_id):
 def update_product(product_id):
     for product in products:
         if product['id'] == product_id:
-            item = request.args.get('item')
-            quantity = request.args.get('quantity')
-            price = request.args.get('price')
+            item = request.json.get('item')
+            quantity = request.json.get('quantity')
+            price = request.json.get('price')
 
             if item is None or quantity is None or price is None:
                 return jsonify({'message': 'Missing parameters'}), 400
@@ -87,12 +87,12 @@ def update_product(product_id):
 def patch_product(product_id):
     for product in products:
         if product['id'] == product_id:
-            if 'item' in request.args:
-                product['item'] = request.args.get('item')
-            if 'quantity' in request.args:
-                product['quantity'] = int(request.args.get('quantity'))
-            if 'price' in request.args:
-                product['price'] = float(request.args.get('price'))
+            if 'item' in request.json:
+                product['item'] = request.json.get('item')
+            if 'quantity' in request.json:
+                product['quantity'] = int(request.json.get('quantity'))
+            if 'price' in request.json:
+                product['price'] = float(request.json.get('price'))
             return jsonify(product)
     return jsonify({'message': 'Product not found'}), 404
 
@@ -121,8 +121,8 @@ def get_users():
 def create_user():
     new_user = {
         'id': len(users) + 1,
-        'name': request.args.get('name'),
-        'email': request.args.get('email')
+        'name': request.json.get('name'),
+        'email': request.json.get('email')
     }
     users.append(new_user)
     return jsonify(new_user), 201
@@ -143,8 +143,8 @@ def get_user(user_id):
 def update_user(user_id):
     for user in users:
         if user['id'] == user_id:
-            name = request.args.get('name')
-            email = request.args.get('email')
+            name = request.json.get('name')
+            email = request.json.get('email')
 
             if name is None or email is None:
                 return jsonify({'message': 'Missing parameters'}), 400
@@ -161,10 +161,10 @@ def update_user(user_id):
 def patch_user(user_id):
     for user in users:
         if user['id'] == user_id:
-            if 'name' in request.args:
-                user['name'] = request.args.get('name')
-            if 'email' in request.args:
-                user['email'] = request.args.get('email')
+            if 'name' in request.json:
+                user['name'] = request.json.get('name')
+            if 'email' in request.json:
+                user['email'] = request.json.get('email')
             return jsonify(user)
     return jsonify({'message': 'User not found'}), 404
 
