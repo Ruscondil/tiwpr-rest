@@ -39,14 +39,19 @@ def get_purchases():
 
 @app.route('/purchases', methods=['POST'])
 def create_purchase():
-    new_purchase = {
-        'id': len(purchases) + 1,
-        'item': request.args.get('item'),
-        'quantity': int(request.args.get('quantity')),
-        'price': float(request.args.get('price'))
-    }
-    purchases.append(new_purchase)
-    return jsonify(new_purchase), 201
+    items = request.get_json()
+    if not items:
+        return jsonify({'message': 'No items provided'}), 400
+
+    for item in items:
+        new_purchase = {
+            'id': len(purchases) + 1,
+            'item': item['item'],
+            'quantity': int(item['quantity'])
+        }
+        purchases.append(new_purchase)
+
+    return jsonify({'message': 'Purchases created'}), 201
 
 
 # GET endpoint to retrieve a specific product by ID
