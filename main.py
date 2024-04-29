@@ -29,6 +29,29 @@ def create_product():
     return jsonify(new_product), 201
 
 
+def check_product_exists(product_id):
+    for product in products:
+        if product['id'] == product_id:
+            return True
+    return False
+
+
+def get_quantity(item_id):
+    for product in products:
+        if product['id'] == item_id:
+            return product['quantity']
+    return None
+
+
+def subtract_product_quantity(product_id, subract_quantity):
+    for product in products:
+        if product['id'] == product_id:
+            if product['quantity'] > subract_quantity:
+                product['quantity'] = product['quantity'] - subract_quantity
+                return True
+    return False
+
+
 @app.route('/purchases', methods=['GET'])
 def get_purchases():
     return jsonify(products)
