@@ -54,25 +54,35 @@ def subtract_product_quantity(product_id, subract_quantity):
 
 @app.route('/purchases', methods=['GET'])
 def get_purchases():
-    return jsonify(products)
+    return jsonify(purchases)
 
 
 # POST endpoint to create a new purchase
-
-
 @app.route('/purchases', methods=['POST'])
 def create_purchase():
-    items = request.get_json()
-    if not items:
-        return jsonify({'message': 'No items provided'}), 400
+    data = request.get_json()
+    # TODO sprawdzanie czy user istnieje
+    if not data or 'user_id' not in data or 'purchases' not in data:
+        return jsonify({'message': 'No user_id or purchases provided'}), 400
+
+    user_id = data['user_id']
+    items = data['purchases']
+    purchased_items = []
+
+    for item in items:  # checking if has enough quantity of all the product
+        if get_quantity(int(item['item_id'])) < int(item['quantity']):
+            return jsonify({'message': 'Too little quantity of one of the products'}), 400
 
     for item in items:
-        new_purchase = {
-            'id': len(purchases) + 1,
-            'item': item['item'],
-            'quantity': int(item['quantity'])
-        }
-        purchases.append(new_purchase)
+        subtract_product_quantity(int(item['item_id']), int(item['quantity']))
+        purchased_items.append(item)
+
+    new_purchase = {
+        'id': len(purchases) + 1,
+        'user_id': user_id,
+        'purchase': purchased_items,
+    }
+    purchases.append(new_purchase)
 
     return jsonify({'message': 'Purchases created'}), 201
 
