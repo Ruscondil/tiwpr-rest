@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -30,9 +31,11 @@ def create_product():
     # TODO sprawdzanie czy formaty są poprawne
     new_product = {
         'id': len(products) + 1,
-        'item': request.json.get('item'),
+        'name': request.json.get('name'),
         'quantity': int(request.json.get('quantity')),
-        'price': float(request.json.get('price'))
+        'price': float(request.json.get('price')),
+        'discounted_price': float(request.json.get('price')),
+        'discounted_price_date': datetime.strptime(request.json.get('discounted_price_date'), '%Y-%m-%d').date()
     }
     products.append(new_product)
     return jsonify(new_product), 201
@@ -45,19 +48,35 @@ def check_product_exists(product_id):
     return False
 
 
-def get_quantity(item_id):
+def get_quantity(product_id):
     for product in products:
-        if product['id'] == item_id:
+        if product['id'] == product_id:
             return product['quantity']
     return None
 
 
-def subtract_product_quantity(product_id, subract_quantity):
+def change_product_quantity(product_id, quantity_change):
     for product in products:
         if product['id'] == product_id:
-            if product['quantity'] > subract_quantity:
-                product['quantity'] = product['quantity'] - subract_quantity
+            if quantity_change > 0 or (quantity_change < 0 and product['quantity'] >= quantity_change):
+                product['quantity'] = product['quantity'] + quantity_change
                 return True
+    return False
+
+
+def is_item_discounted(product_id):
+    for product in products:
+        if product['id'] == product_id:
+            return product['discounted_price'] < product['price']
+    return False
+
+
+def change_discounted_price(product_id, discounted_price, discounted_price_date):
+    for product in products:
+        if product['id'] == product_id:
+            product['discounted_price'] = float(discounted_price)
+            product['discounted_price_date'] = discounted_price_date
+            return True
     return False
 
 
@@ -80,11 +99,12 @@ def create_purchase():
     purchased_items = []
 
     for item in items:  # checking if has enough quantity of all the product
-        if get_quantity(int(item['item_id'])) < int(item['quantity']):
+        if get_quantity(int(item['product_id'])) < int(item['quantity']):
             return jsonify({'message': 'Too little quantity of one of the products'}), 400
 
     for item in items:
-        subtract_product_quantity(int(item['item_id']), int(item['quantity']))
+        change_product_quantity(
+            int(item['product_id']), -1 * int(item['quantity']))
         purchased_items.append(item)
 
     new_purchase = {
@@ -95,6 +115,16 @@ def create_purchase():
     purchases.append(new_purchase)
 
     return jsonify({'message': 'Purchases created'}), 201
+
+# GET endpoint to retrieve a specific purchase by ID
+
+
+@app.route('/purchases/<int:purchase_id>', methods=['GET'])
+def get_purchase(purchase_id):
+    for purchase in purchases:
+        if purchase['id'] == purchase_id:
+            return jsonify(purchase)
+    return jsonify({'message': 'Purchase not found'}), 404
 
 
 # GET endpoint to retrieve a specific product by ID
@@ -115,14 +145,14 @@ def update_product(product_id):
     # TODO sprawdzanie poprawnośći formatów
     for product in products:
         if product['id'] == product_id:
-            item = request.json.get('item')
+            name = request.json.get('name')
             quantity = request.json.get('quantity')
             price = request.json.get('price')
 
-            if item is None or quantity is None or price is None:
+            if name is None or quantity is None or price is None:
                 return jsonify({'message': 'Missing parameters'}), 400
 
-            product['item'] = item
+            product['name'] = name
             product['quantity'] = int(quantity)
             product['price'] = float(price)
             return jsonify(product)
@@ -137,8 +167,8 @@ def patch_product(product_id):
     # TODO sprawdzanie poprawnośći formatów
     for product in products:
         if product['id'] == product_id:
-            if 'item' in request.json:
-                product['item'] = request.json.get('item')
+            if 'name' in request.json:
+                product['name'] = request.json.get('name')
             if 'quantity' in request.json:
                 product['quantity'] = int(request.json.get('quantity'))
             if 'price' in request.json:
@@ -231,6 +261,45 @@ def delete_user(user_id):
             users.remove(user)
             return jsonify({'message': 'User deleted'})
     return jsonify({'message': 'User not found'}), 404
+
+# GET endpoint to retrieve a specific discount by ID
+
+
+@app.route('/discount/<int:discount_id>', methods=['GET'])
+def get_discount(discount_id):
+    for discount in discounts:
+        if discount['id'] == discount_id:
+            return jsonify(discount)
+    return jsonify({'message': 'Discount not found'}), 404
+
+# POST endpoint to create a new discount
+
+
+@app.route('/discounts', methods=['POST'])
+def create_discount():
+    # TODO sprawdzanie poprawnośći formatów
+    # TODO sprawdzanie czy zosało już coś przecenione
+
+    data = request.get_json()
+    if not data or 'discounted_price_date' not in data or 'discounted_items' not in data:
+        return jsonify({'message': 'No discounted_price_date or discounts provided'}), 400
+
+    discounted_price_date = datetime.strptime(
+        data['discounted_price_date'], '%Y-%m-%d').date()
+    items = data['discounted_items']
+
+    for item in items:
+        change_discounted_price(
+            int(item['item_id']), float(item["discounted_price"]), discounted_price_date)
+
+    new_discount = {
+        'id': len(discounts) + 1,
+        'discounted_price_date': discounted_price_date,
+        'discounted_items': items,
+    }
+    discounts.append(new_discount)
+
+    return jsonify(new_discount), 201
 
 
 if __name__ == '__main__':
