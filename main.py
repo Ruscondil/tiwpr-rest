@@ -27,15 +27,31 @@ def get_products():
 
 @app.route('/products', methods=['POST'])
 def create_product():
-    # TODO sprawdzanie czy wszystko jest
-    # TODO sprawdzanie czy formaty są poprawne
+    name = request.json.get('name')
+    quantity = request.json.get('quantity')
+    price = request.json.get('price')
+    discounted_price = request.json.get('discounted_price')
+    discounted_price_date = request.json.get('discounted_price_date')
+
+    if not name or not quantity or not price or not discounted_price_date:
+        return jsonify({'message': 'Missing required fields'}), 400
+
+    try:
+        quantity = int(quantity)
+        price = float(price)
+        discounted_price = float(discounted_price)
+        discounted_price_date = datetime.strptime(
+            discounted_price_date, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'message': 'Invalid data types'}), 400
+
     new_product = {
         'id': len(products) + 1,
-        'name': request.json.get('name'),
-        'quantity': int(request.json.get('quantity')),
-        'price': float(request.json.get('price')),
-        'discounted_price': float(request.json.get('price')),
-        'discounted_price_date': datetime.strptime(request.json.get('discounted_price_date'), '%Y-%m-%d').date()
+        'name': name,
+        'quantity': quantity,
+        'price': price,
+        'discounted_price': discounted_price,
+        'discounted_price_date': discounted_price_date
     }
     products.append(new_product)
     return jsonify(new_product), 201
@@ -142,15 +158,20 @@ def get_product(product_id):
 
 @app.route('/products/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
-    # TODO sprawdzanie poprawnośći formatów
     for product in products:
         if product['id'] == product_id:
             name = request.json.get('name')
             quantity = request.json.get('quantity')
             price = request.json.get('price')
 
-            if name is None or quantity is None or price is None:
-                return jsonify({'message': 'Missing parameters'}), 400
+            if not name or not quantity or not price:
+                return jsonify({'message': 'Missing required fields'}), 400
+
+            try:
+                quantity = int(quantity)
+                price = float(price)
+            except ValueError:
+                return jsonify({'message': 'Invalid data types'}), 400
 
             product['name'] = name
             product['quantity'] = int(quantity)
@@ -194,16 +215,32 @@ def delete_product(product_id):
 def get_users():
     return jsonify(users)
 
+
+def check_user_exists(user_id):
+    for user in users:
+        if user['id'] == user_id:
+            return True
+    return False
+
+
 # POST endpoint to create a new user
 
 
 @app.route('/users', methods=['POST'])
 def create_user():
-    # TODO sprawdzanie poprawnośći formatów
+    name = request.json.get('name')
+    email = request.json.get('email')
+
+    if not name or not email:
+        return jsonify({'message': 'Name and email are required'}), 400
+
+    if '@' not in email or '.' not in email:
+        return jsonify({'message': 'Invalid email format'}), 400
+
     new_user = {
         'id': len(users) + 1,
-        'name': request.json.get('name'),
-        'email': request.json.get('email')
+        'name': name,
+        'email': email
     }
     users.append(new_user)
     return jsonify(new_user), 201
@@ -228,8 +265,11 @@ def update_user(user_id):
             name = request.json.get('name')
             email = request.json.get('email')
 
-            if name is None or email is None:
-                return jsonify({'message': 'Missing parameters'}), 400
+            if not name or not email:
+                return jsonify({'message': 'Name and email are required'}), 400
+
+            if '@' not in email or '.' not in email:
+                return jsonify({'message': 'Invalid email format'}), 400
 
             user['name'] = name
             user['email'] = email
@@ -241,13 +281,15 @@ def update_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['PATCH'])
 def patch_user(user_id):
-    # TODO sprawdzanie poprawnośći formatów
     for user in users:
         if user['id'] == user_id:
             if 'name' in request.json:
                 user['name'] = request.json.get('name')
             if 'email' in request.json:
-                user['email'] = request.json.get('email')
+                email = request.json.get('email')
+                if '@' not in email or '.' not in email:
+                    return jsonify({'message': 'Invalid email format'}), 400
+                user['email'] = email
             return jsonify(user)
     return jsonify({'message': 'User not found'}), 404
 
