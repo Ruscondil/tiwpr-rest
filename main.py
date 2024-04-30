@@ -262,15 +262,6 @@ def delete_user(user_id):
             return jsonify({'message': 'User deleted'})
     return jsonify({'message': 'User not found'}), 404
 
-# GET endpoint to retrieve a specific discount by ID
-
-
-@app.route('/discount/<int:discount_id>', methods=['GET'])
-def get_discount(discount_id):
-    for discount in discounts:
-        if discount['id'] == discount_id:
-            return jsonify(discount)
-    return jsonify({'message': 'Discount not found'}), 404
 
 # POST endpoint to create a new discount
 
@@ -300,6 +291,67 @@ def create_discount():
     discounts.append(new_discount)
 
     return jsonify(new_discount), 201
+
+
+# GET endpoint to retrieve all discounts
+@app.route('/discounts', methods=['GET'])
+def get_discounts():
+    return jsonify(discounts)
+
+
+# GET endpoint to retrieve a specific discount by ID
+@app.route('/discounts/<int:discount_id>', methods=['GET'])
+def get_discount(discount_id):
+    for discount in discounts:
+        if discount['id'] == discount_id:
+            return jsonify(discount)
+    return jsonify({'message': 'Discount not found'}), 404
+
+# PUT endpoint to update a specific discount by ID
+
+
+@app.route('/discounts/<int:discount_id>', methods=['PUT'])
+def update_discount(discount_id):
+    # TODO sprawdzanie poprawnośći formatów
+    for discount in discounts:
+        if discount['id'] == discount_id:
+
+            discounted_price_date = request.json.get('discounted_price_date')
+            discounted_items = request.json.get('discounted_items')
+
+            if discounted_price_date is None or discounted_items is None:
+                return jsonify({'message': 'Missing parameters'}), 400
+
+            for item in discount['discounted_items']:  # revert changes
+                change_discounted_price(int(item['item_id']), -1, -1)
+
+            for item in discounted_items:  # add new changes
+                change_discounted_price(
+                    int(item['item_id']), item['discounted_price'], discounted_price_date)
+
+            # change info in discounts
+            discount['discounted_price_date'] = datetime.strptime(
+                discounted_price_date, '%Y-%m-%d').date()
+
+            discount['discounted_items'] = discounted_items
+
+            return jsonify(discount)
+    return jsonify({'message': 'Discount not found'}), 404
+
+# DELETE endpoint to delete a specific discount by ID
+
+
+@app.route('/discounts/<int:discount_id>', methods=['DELETE'])
+def delete_discount(discount_id):
+    for discount in discounts:
+        if discount['id'] == discount_id:
+
+            for item in discount['discounted_items']:  # revert changes
+                change_discounted_price(int(item['item_id']), -1, -1)
+
+            discounts.remove(discount)
+            return jsonify({'message': 'Discount deleted'})
+    return jsonify({'message': 'Discount not found'}), 404
 
 
 if __name__ == '__main__':
