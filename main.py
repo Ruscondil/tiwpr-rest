@@ -5,7 +5,15 @@ app = Flask(__name__)
 # Sample data
 purchases = []
 products = []
+#
+#        'id': int,
+#        'name': string,
+#        'quantity': int,
+#        'price': float(,
+#        'discounted_price': float,
+#        'discounted_price_date': datetime
 users = []
+discounts = []
 # GET endpoint to retrieve all products
 
 
@@ -18,7 +26,8 @@ def get_products():
 
 @app.route('/products', methods=['POST'])
 def create_product():
-
+    # TODO sprawdzanie czy wszystko jest
+    # TODO sprawdzanie czy formaty są poprawne
     new_product = {
         'id': len(products) + 1,
         'item': request.json.get('item'),
@@ -62,6 +71,7 @@ def get_purchases():
 def create_purchase():
     data = request.get_json()
     # TODO sprawdzanie czy user istnieje
+    # TODO sprawdzanie poprawnośći formatów
     if not data or 'user_id' not in data or 'purchases' not in data:
         return jsonify({'message': 'No user_id or purchases provided'}), 400
 
@@ -102,6 +112,7 @@ def get_product(product_id):
 
 @app.route('/products/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
+    # TODO sprawdzanie poprawnośći formatów
     for product in products:
         if product['id'] == product_id:
             item = request.json.get('item')
@@ -123,6 +134,7 @@ def update_product(product_id):
 
 @app.route('/products/<int:product_id>', methods=['PATCH'])
 def patch_product(product_id):
+    # TODO sprawdzanie poprawnośći formatów
     for product in products:
         if product['id'] == product_id:
             if 'item' in request.json:
@@ -157,6 +169,7 @@ def get_users():
 
 @app.route('/users', methods=['POST'])
 def create_user():
+    # TODO sprawdzanie poprawnośći formatów
     new_user = {
         'id': len(users) + 1,
         'name': request.json.get('name'),
@@ -179,6 +192,7 @@ def get_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
+    # TODO sprawdzanie poprawnośći formatów
     for user in users:
         if user['id'] == user_id:
             name = request.json.get('name')
@@ -197,6 +211,7 @@ def update_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['PATCH'])
 def patch_user(user_id):
+    # TODO sprawdzanie poprawnośći formatów
     for user in users:
         if user['id'] == user_id:
             if 'name' in request.json:
