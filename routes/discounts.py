@@ -52,9 +52,10 @@ def create_discount():
             return jsonify({'message': 'Discounted price must be greater than 0'}), 400
 
         discounted = is_discounted(product_id)
-        print(discounted)
-        if discounted or discounted is None:
+        if discounted:
             return jsonify({'message': 'Product already discounted'}), 400
+        if discounted is None:
+            return jsonify({'message': 'Product not found'}), 404
 
     for item in items:
         change_discounted_price(
