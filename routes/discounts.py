@@ -7,6 +7,13 @@ from routes.products import products
 discounts = []
 
 
+def is_discounted(product_id):  # check if product is already discounted
+    for product in products:
+        if product['id'] == product_id:
+            return 'discounted_price' in product
+    return None
+
+
 def change_discounted_price(product_id, discounted_price, discounted_price_date):
     for product in products:
         if product['id'] == product_id:
@@ -19,8 +26,6 @@ def change_discounted_price(product_id, discounted_price, discounted_price_date)
 
 @app.route('/discounts', methods=['POST'])
 def create_discount():
-    # TODO sprawdzanie poprawnośći formatów
-    # TODO sprawdzanie czy zosało już coś przecenione
 
     data = request.get_json()
     if not data or 'discounted_price_date' not in data or 'discounted_items' not in data:
@@ -29,6 +34,26 @@ def create_discount():
     discounted_price_date = datetime.strptime(
         data['discounted_price_date'], '%Y-%m-%d').date()
     items = data['discounted_items']
+
+    for item in items:  # precheckig all products
+        if 'product_id' not in item or 'discounted_price' not in item:
+            return jsonify({'message': 'No product_id or discounted price provided'}), 400
+
+        try:
+            product_id = int(item['product_id'])
+            discounted_price = float(item['discounted_price'])
+        except ValueError:
+            return jsonify({'message': 'Invalid product_id or discounted_price'}), 400
+
+        if product_id <= 0:
+            return jsonify({'message': 'No product_id '}), 400
+
+        if discounted_price <= 0:
+            return jsonify({'message': 'Discounted price must be greater than 0'}), 400
+
+        discounted = is_discounted(product_id)
+        if is_discounted or discounted is None:
+            return jsonify({'message': 'Product already discounted'}), 400
 
     for item in items:
         change_discounted_price(

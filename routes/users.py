@@ -54,7 +54,6 @@ def get_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
-    # TODO sprawdzanie poprawnośći formatów
     for user in users:
         if user['id'] == user_id:
             name = request.json.get('name')

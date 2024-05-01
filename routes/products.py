@@ -72,6 +72,9 @@ def create_product():
     except ValueError:
         return jsonify({'message': 'Invalid data types'}), 400
 
+    if quantity <= 0 or price <= 0 or discounted_price <= 0:
+        return jsonify({'message': 'Quantity, price, and discounted price must be greater than 0'}), 400
+
     new_product = {
         'id': len(products) + 1,
         'name': name,
@@ -104,19 +107,29 @@ def update_product(product_id):
             name = request.json.get('name')
             quantity = request.json.get('quantity')
             price = request.json.get('price')
+            discounted_price = request.json.get('discounted_price')
+            discounted_price_date = request.json.get('discounted_price_date')
 
-            if not name or not quantity or not price:
+            if not name or not quantity or not price or not discounted_price_date:
                 return jsonify({'message': 'Missing required fields'}), 400
 
             try:
                 quantity = int(quantity)
                 price = float(price)
+                discounted_price = float(discounted_price)
+                discounted_price_date = datetime.strptime(
+                    discounted_price_date, '%Y-%m-%d').date()
             except ValueError:
                 return jsonify({'message': 'Invalid data types'}), 400
+
+            if quantity <= 0 or price <= 0 or discounted_price <= 0:
+                return jsonify({'message': 'Quantity, price, and discounted price must be greater than 0'}), 400
 
             product['name'] = name
             product['quantity'] = int(quantity)
             product['price'] = float(price)
+            product['discounted_price'] = float(discounted_price)
+            product['discounted_price_date'] = discounted_price_date
             return jsonify(product)
     return jsonify({'message': 'Product not found'}), 404
 
@@ -126,15 +139,47 @@ def update_product(product_id):
 
 @app.route('/products/<int:product_id>', methods=['PATCH'])
 def patch_product(product_id):
-    # TODO sprawdzanie poprawnośći formatów
     for product in products:
         if product['id'] == product_id:
             if 'name' in request.json:
                 product['name'] = request.json.get('name')
             if 'quantity' in request.json:
-                product['quantity'] = int(request.json.get('quantity'))
+                quantity = request.json.get('quantity')
+                try:
+                    quantity = int(quantity)
+                    if quantity <= 0:
+                        return jsonify({'message': 'Quantity must be greater than 0'}), 400
+                    product['quantity'] = quantity
+                except ValueError:
+                    return jsonify({'message': 'Invalid data type for quantity'}), 400
             if 'price' in request.json:
-                product['price'] = float(request.json.get('price'))
+                price = request.json.get('price')
+                try:
+                    price = float(price)
+                    if price <= 0:
+                        return jsonify({'message': 'Price must be greater than 0'}), 400
+                    product['price'] = price
+                except ValueError:
+                    return jsonify({'message': 'Invalid data type for price'}), 400
+            if 'discounted_price' in request.json:
+                discounted_price = request.json.get('discounted_price')
+                try:
+                    discounted_price = float(discounted_price)
+                    if discounted_price <= 0:
+                        return jsonify({'message': 'Discounted price must be greater than 0'}), 400
+                    product['discounted_price'] = discounted_price
+                except ValueError:
+                    return jsonify({'message': 'Invalid data type for discounted_price'}), 400
+
+            if 'discounted_price_date' in request.json:
+                discounted_price_date = request.json.get(
+                    'discounted_price_date')
+                try:
+                    discounted_price_date = datetime.strptime(
+                        discounted_price_date, '%Y-%m-%d').date()
+                except ValueError:
+                    return jsonify({'message': 'Invalid data type for discounted_price_date'}), 400
+                product['discounted_price_date'] = discounted_price_date
             return jsonify(product)
     return jsonify({'message': 'Product not found'}), 404
 

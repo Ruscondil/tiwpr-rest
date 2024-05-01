@@ -15,18 +15,43 @@ def get_purchases():
 
 @app.route('/purchases', methods=['POST'])
 def create_purchase():
+
+    purchased_items = []
     data = request.get_json()
-    # TODO sprawdzanie czy user istnieje
-    # TODO sprawdzanie poprawnośći formatów
+
     if not data or 'user_id' not in data or 'purchases' not in data:
         return jsonify({'message': 'No user_id or purchases provided'}), 400
 
     user_id = data['user_id']
     items = data['purchases']
-    purchased_items = []
+
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return jsonify({'message': 'Invalid user_id'}), 400
 
     for item in items:  # checking if has enough quantity of all the product
-        if get_quantity(int(item['product_id'])) < int(item['quantity']):
+        if 'product_id' not in item or 'quantity' not in item:
+            return jsonify({'message': 'No product_id or quantity provided'}), 400
+
+        try:
+            product_id = int(item['product_id'])
+            quantity = int(item['quantity'])
+        except ValueError:
+            return jsonify({'message': 'Invalid product_id or quantity'}), 400
+
+        if product_id <= 0:
+            return jsonify({'message': 'No product_id '}), 400
+
+        if quantity <= 0:
+            return jsonify({'message': 'Quantity must be greater than 0'}), 400
+
+        product_quantity = get_quantity(product_id)
+
+        if product_quantity is None:
+            return jsonify({'message': 'Product not found'}), 404
+
+        if product_quantity < quantity:
             return jsonify({'message': 'Too little quantity of one of the products'}), 400
 
     for item in items:
