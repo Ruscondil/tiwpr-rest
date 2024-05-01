@@ -1,5 +1,6 @@
 
-from flask import jsonify, request
+from flask import jsonify, request, make_response
+import hashlib
 from flask_app import app
 # GET endpoint to retrieve all users
 
@@ -78,11 +79,22 @@ def update_user(user_id):
             if check_email_exists(email):
                 return jsonify({'message': 'Email already exists'}), 400
 
-            user['name'] = name
-            user['email'] = email
-            return jsonify(user)
-    return jsonify({'message': 'User not found'}), 404
+            # Generate ETag
+            data = jsonify(user)
+            etag = hashlib.sha1(data.data).hexdigest()
+            response = make_response(data)
+            response.headers['ETag'] = etag
 
+            # Check If-Match header
+            if request.headers.get('If-Match') == etag:
+                user['name'] = name
+                user['email'] = email
+            else:
+                response.status_code = 304
+
+            return response
+
+    return jsonify({'message': 'User not found'}), 404
 # PATCH endpoint to update a specific user by ID
 
 

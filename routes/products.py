@@ -1,5 +1,6 @@
 
-from flask import jsonify, request
+from flask import jsonify, request, make_response
+import hashlib
 from datetime import datetime
 from flask_app import app
 # GET endpoint to retrieve all products
@@ -129,12 +130,23 @@ def update_product(product_id):
             if discounted_price <= 0 and discounted_price != -1:
                 return jsonify({'message': 'Discounted price must be greater than 0. If no discount can be -1'}), 400
 
-            product['name'] = name
-            product['quantity'] = int(quantity)
-            product['price'] = float(price)
-            product['discounted_price'] = float(discounted_price)
-            product['discounted_price_date'] = discounted_price_date
-            return jsonify(product)
+             # Generate ETag
+            data = jsonify(product)
+            etag = hashlib.sha1(data.data).hexdigest()
+            response = make_response(data)
+            response.headers['ETag'] = etag
+
+            # Check If-Match header
+            if request.headers.get('If-Match') == etag:
+                product['name'] = name
+                product['quantity'] = int(quantity)
+                product['price'] = float(price)
+                product['discounted_price'] = float(discounted_price)
+                product['discounted_price_date'] = discounted_price_date
+            else:
+                response.status_code = 304
+
+            return response
     return jsonify({'message': 'Product not found'}), 404
 
 

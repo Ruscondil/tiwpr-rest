@@ -1,5 +1,5 @@
-
-from flask import jsonify, request
+from flask import jsonify, request, make_response
+import hashlib
 from datetime import datetime
 from flask_app import app
 from routes.products import products
@@ -89,7 +89,6 @@ def get_discount(discount_id):
 
 @app.route('/discounts/<int:discount_id>', methods=['PUT'])
 def update_discount(discount_id):
-    # TODO sprawdzanie poprawnośći formatów
     for discount in discounts:
         if discount['id'] == discount_id:
 
@@ -127,23 +126,28 @@ def update_discount(discount_id):
                     if discounted is None:
                         return jsonify({'message': 'Product not found'}), 404
 
-            for item in items:
-                change_discounted_price(
-                    int(item['product_id']), float(item["discounted_price"]), discounted_price_date)
+            # Generate ETag
+            data = jsonify(discount)
+            etag = hashlib.sha1(data.data).hexdigest()
+            response = make_response(data)
+            response.headers['ETag'] = etag
 
-            for item in discount['discounted_items']:  # revert changes
-                change_discounted_price(int(item['product_id']), -1, -1)
+            # Check If-Match header
+            if request.headers.get('If-Match') == etag:
+                for item in discount['discounted_items']:  # revert changes
+                    change_discounted_price(int(item['product_id']), -1, -1)
 
-            for item in items:  # add new changes
-                change_discounted_price(
-                    int(item['product_id']), item['discounted_price'], discounted_price_date)
+                for item in items:  # apply changes
+                    change_discounted_price(
+                        int(item['product_id']), float(item["discounted_price"]), discounted_price_date)
 
-            # change info in discounts
-            discount['discounted_price_date'] = discounted_price_date
+                # change info in discounts
+                discount['discounted_price_date'] = discounted_price_date
 
-            discount['discounted_items'] = items
-
-            return jsonify(discount)
+                discount['discounted_items'] = items
+            else:
+                response.status_code = 304
+            return response
     return jsonify({'message': 'Discount not found'}), 404
 
 # DELETE endpoint to delete a specific discount by ID
