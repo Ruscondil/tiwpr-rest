@@ -14,6 +14,13 @@ def check_user_exists(user_id):
     return False
 
 
+def check_email_exists(email):
+    for user in users:
+        if user['email'] == email:
+            return True
+    return False
+
+
 @app.route('/users', methods=['GET'])
 def get_users():
     return jsonify(users)
@@ -31,6 +38,9 @@ def create_user():
 
     if '@' not in email or '.' not in email:
         return jsonify({'message': 'Invalid email format'}), 400
+
+    if check_email_exists(email):
+        return jsonify({'message': 'Email already exists'}), 400
 
     new_user = {
         'id': len(users) + 1,
@@ -65,6 +75,9 @@ def update_user(user_id):
             if '@' not in email or '.' not in email:
                 return jsonify({'message': 'Invalid email format'}), 400
 
+            if check_email_exists(email):
+                return jsonify({'message': 'Email already exists'}), 400
+
             user['name'] = name
             user['email'] = email
             return jsonify(user)
@@ -83,6 +96,8 @@ def patch_user(user_id):
                 email = request.json.get('email')
                 if '@' not in email or '.' not in email:
                     return jsonify({'message': 'Invalid email format'}), 400
+                if check_email_exists(email):
+                    return jsonify({'message': 'Email already exists'}), 400
                 user['email'] = email
             return jsonify(user)
     return jsonify({'message': 'User not found'}), 404
