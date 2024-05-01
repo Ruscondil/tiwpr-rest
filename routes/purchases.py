@@ -9,7 +9,18 @@ purchases = []
 
 @app.route('/purchases', methods=['GET'])
 def get_purchases():
-    return jsonify(purchases)
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
+
+    if not page and not per_page:
+        return jsonify(purchases)
+
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+
+    paginated_purchases = purchases[start_index:end_index]
+
+    return jsonify(paginated_purchases)
 
 # POST endpoint to create a new purchase
 

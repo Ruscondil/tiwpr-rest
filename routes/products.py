@@ -48,7 +48,18 @@ def is_item_discounted(product_id):
 
 @app.route('/products', methods=['GET'])
 def get_products():
-    return jsonify(products)
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
+
+    if not page and not per_page:
+        return jsonify(products)
+
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+
+    paginated_products = products[start_index:end_index]
+
+    return jsonify(paginated_products)
 
 # POST endpoint to create a new products
 

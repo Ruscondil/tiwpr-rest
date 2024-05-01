@@ -24,8 +24,18 @@ def check_email_exists(email):
 
 @app.route('/users', methods=['GET'])
 def get_users():
-    return jsonify(users)
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
 
+    if not page and not per_page:
+        return jsonify(users)
+
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+
+    paginated_users = users[start_index:end_index]
+
+    return jsonify(paginated_users)
 # POST endpoint to create a new user
 
 

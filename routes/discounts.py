@@ -74,7 +74,18 @@ def create_discount():
 # GET endpoint to retrieve all discounts
 @app.route('/discounts', methods=['GET'])
 def get_discounts():
-    return jsonify(discounts)
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
+
+    if not page and not per_page:
+        return jsonify(discounts)
+
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+
+    paginated_discounts = discounts[start_index:end_index]
+
+    return jsonify(paginated_discounts)
 
 
 # GET endpoint to retrieve a specific discount by ID
