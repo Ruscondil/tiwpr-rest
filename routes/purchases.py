@@ -2,6 +2,7 @@
 from flask import jsonify, request
 from flask_app import app
 from routes.products import change_product_quantity, get_quantity
+from routes.users import check_user_exists
 
 purchases = []
 
@@ -29,6 +30,9 @@ def create_purchase():
         user_id = int(user_id)
     except ValueError:
         return jsonify({'message': 'Invalid user_id'}), 400
+
+    if user_id <= 0 or not check_user_exists(user_id):
+        return jsonify({'message': 'User not found'}), 404
 
     for item in items:  # checking if has enough quantity of all the product
         if 'product_id' not in item or 'quantity' not in item:

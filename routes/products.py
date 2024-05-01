@@ -72,8 +72,10 @@ def create_product():
     except ValueError:
         return jsonify({'message': 'Invalid data types'}), 400
 
-    if quantity <= 0 or price <= 0 or discounted_price <= 0:
-        return jsonify({'message': 'Quantity, price, and discounted price must be greater than 0'}), 400
+    if quantity <= 0 or price <= 0:
+        return jsonify({'message': 'Quantity and price must be greater than 0'}), 400
+    if discounted_price <= 0 and discounted_price != -1:
+        return jsonify({'message': 'Discounted price must be greater than 0. If no discount can be -1'}), 400
 
     new_product = {
         'id': len(products) + 1,
@@ -122,8 +124,10 @@ def update_product(product_id):
             except ValueError:
                 return jsonify({'message': 'Invalid data types'}), 400
 
-            if quantity <= 0 or price <= 0 or discounted_price <= 0:
-                return jsonify({'message': 'Quantity, price, and discounted price must be greater than 0'}), 400
+            if quantity <= 0 or price <= 0:
+                return jsonify({'message': 'Quantity and price must be greater than 0'}), 400
+            if discounted_price <= 0 and discounted_price != -1:
+                return jsonify({'message': 'Discounted price must be greater than 0. If no discount can be -1'}), 400
 
             product['name'] = name
             product['quantity'] = int(quantity)
@@ -165,8 +169,8 @@ def patch_product(product_id):
                 discounted_price = request.json.get('discounted_price')
                 try:
                     discounted_price = float(discounted_price)
-                    if discounted_price <= 0:
-                        return jsonify({'message': 'Discounted price must be greater than 0'}), 400
+                    if discounted_price <= 0 and discounted_price != -1:
+                        return jsonify({'message': 'Discounted price must be greater than 0. If no discount can be -1'}), 400
                     product['discounted_price'] = discounted_price
                 except ValueError:
                     return jsonify({'message': 'Invalid data type for discounted_price'}), 400
