@@ -68,7 +68,7 @@ def create_discount():
     }
     discounts.append(new_discount)
 
-    return jsonify(new_discount), 201
+    return jsonify(new_discount), 201, {'Location': '/discounts/' + str(new_discount['id'])}
 
 
 # GET endpoint to retrieve all discounts

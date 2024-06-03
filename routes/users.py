@@ -59,7 +59,7 @@ def create_user():
         'email': email
     }
     users.append(new_user)
-    return jsonify(new_user), 201
+    return jsonify(new_user), 201, {'Location': '/users/' + str(new_user['id'])}
 # GET endpoint to retrieve a specific user by ID
 
 

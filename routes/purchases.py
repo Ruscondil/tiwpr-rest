@@ -81,8 +81,7 @@ def create_purchase():
     }
     purchases.append(new_purchase)
 
-    return jsonify({'message': 'Purchases created'}), 201
-
+    return jsonify({'message': 'Purchases created'}), 201, {'Location': '/purchases/' + str(new_purchase['id'])}
 # GET endpoint to retrieve a specific purchase by ID
 
 

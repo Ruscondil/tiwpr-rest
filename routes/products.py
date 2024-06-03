@@ -98,7 +98,7 @@ def create_product():
         'discounted_price_date': discounted_price_date
     }
     products.append(new_product)
-    return jsonify(new_product), 201
+    return jsonify(new_product), 201, {'Location': '/products/' + str(new_product['id'])}
 
 
 # GET endpoint to retrieve a specific product by ID
